@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="utf-8">
+    <title>Визначення місця</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; display: none; }
+        
+        /* Модальне вікно */
+        #locationPrompt {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #infoBox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            display: none;
+            width: 250px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        input, button {
+            margin-top: 10px;
+            padding: 8px;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Форма для введення міста -->
+<div id="locationPrompt">
+    <h3>Введіть своє місто</h3>
+    <input type="text" id="cityInput" placeholder="Наприклад: Львів">
+    <button onclick="setMapLocation()">Знайти</button>
+</div>
+
+<!-- Карта -->
+<div id="map"></div>
+
+<div id="infoBox">
+    <button id="closeBtn" onclick="closeInfoBox()">❌</button>
+    <label>Location Name:</label>
+    <input type="text" id="placeName" placeholder="Enter name">
+    <label>Description:</label>
+    <input type="text" id="placeDesc" placeholder="Describe the issue">
+    <button onclick="saveMarker()">Add Place</button>
+</div>
+
+
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1Ijoicm9tYW5rcmF2ZXRzIiwiYSI6ImNrZ2hzajNpejAweDYycW14NXZtYjJycWYifQ.0VN2Nw-1t2JfOHlcSlTYmg';
+
+    let map;
+    let selectedCoords = null;
+
+    
+    // Функція для пошуку міста
+    async function getCityCoordinates(city) {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${city}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.length > 0) {
+            return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+        } else {
+            return null;
+        }
+    }
+
+    // Функція для встановлення карти
+    async function setMapLocation() {
+        const city = document.getElementById("cityInput").value;
+        if (!city) {
+            alert("Будь ласка, введіть місто!");
+            return;
+        }
+
+        const coordinates = await getCityCoordinates(city);
+        if (coordinates) {
+            initializeMap(coordinates);
+        } else {
+            alert("Не вдалося знайти це місто. Введіть інше.");
+        }
+    }
+
+    // Ініціалізація карти
+    function initializeMap(centerCoords) {
+        document.getElementById("locationPrompt").style.display = "none";
+        document.getElementById("map").style.display = "block";
+
+        map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: centerCoords,
+            zoom: 12
+        });
+
+        new mapboxgl.Marker({ color: "blue" })
+            .setLngLat(centerCoords)
+            .setPopup(new mapboxgl.Popup().setHTML("<strong>Ваша локація</strong>"))
+            .addTo(map);
+
+             // Store clicked coordinates
+
+     map.on('click', (event) => {
+            selectedCoords = event.lngLat;
+            map.getCanvas().style.cursor = 'wait'; // Change cursor to waiting
+            document.getElementById("infoBox").style.display = "block";
+        });
+
+// Change cursor on map interaction
+map.on('mouseenter', () => {
+    map.getCanvas().style.cursor = 'crosshair';
+});
+
+map.on('mouseleave', () => {
+    map.getCanvas().style.cursor = '';
+});
+
+map.on('click', (event) => {
+    selectedCoords = event.lngLat;
+    map.getCanvas().style.cursor = 'wait'; // Change cursor to waiting
+    document.getElementById("infoBox").style.display = "block";
+});
+
+// Close the input box
+function closeInfoBox() {
+    document.getElementById("infoBox").style.display = "none";
+    document.getElementById("placeName").value = "";
+    document.getElementById("placeDesc").value = "";
+}
+    }
+
+    // Перевірка геолокації
+    function getUserLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userCoords = [position.coords.longitude, position.coords.latitude];
+                    initializeMap(userCoords);
+                },
+                () => {
+                    document.getElementById("locationPrompt").style.display = "block";
+                }
+            );
+        } else {
+            document.getElementById("locationPrompt").style.display = "block";
+        }
+    }
+
+    // Запитати у користувача локацію
+    getUserLocation();
+
+    function saveMarker() {
+        const placeName = document.getElementById("placeName").value;
+        const placeDesc = document.getElementById("placeDesc").value;
+
+        if (!placeName || !placeDesc) {
+            alert("Please enter name and description!");
+            return;
+        }
+
+        if (!selectedCoords) {
+            alert("Please select a point on the map!");
+            return;
+        }
+
+        // Add marker
+        new mapboxgl.Marker({ color: "red" })
+            .setLngLat(selectedCoords)
+            .setPopup(new mapboxgl.Popup().setHTML(`<h3>${placeName}</h3><p>${placeDesc}</p>`))
+            .addTo(map);
+
+        // Reset cursor and form
+        map.getCanvas().style.cursor = 'grab'; // Change cursor back
+        closeInfoBox();
+    }
+
+    // Close the input box
+    function closeInfoBox() {
+        document.getElementById("infoBox").style.display = "none";
+        document.getElementById("placeName").value = "";
+        document.getElementById("placeDesc").value = "";
+    }
+</script>
+
+</body>
+</html>
