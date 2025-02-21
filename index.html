@@ -56,13 +56,18 @@
 <!-- Карта -->
 <div id="map"></div>
 
+
+
 <div id="infoBox">
     <button id="closeBtn" onclick="closeInfoBox()">❌</button>
-    <label>Location Name:</label>
-    <input type="text" id="placeName" placeholder="Enter name">
-    <label>Description:</label>
-    <input type="text" id="placeDesc" placeholder="Describe the issue">
-    <button onclick="saveMarker()">Add Place</button>
+    <div class="addData">
+        <label>Location Name:</label>
+        <input type="text" id="placeName" placeholder="Enter name">
+        <label>Description:</label>
+        <input type="text" id="placeDesc" placeholder="Describe the issue">
+        <button onclick="saveMarker()" id="addDataBtn">Додати</button>
+        <button id="login">Вхід</button>
+    </div>
 </div>
 
 
@@ -201,6 +206,7 @@ function closeInfoBox() {
         document.getElementById("placeDesc").value = "";
     }
 </script>
-
+<script type="module" src="firebaseApp.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
