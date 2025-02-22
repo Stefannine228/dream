@@ -111,7 +111,7 @@ function initializeMap(centerCoords) {
 
         if (!markerClicked) {
             if (!markData) {
-                markData = new mapboxgl.Marker({ color: "red" })
+                markData = new mapboxgl.Marker({ color: "green" })
                     .setLngLat(selectedCoords)
                     .setPopup(new mapboxgl.Popup().setHTML(`<h3>${placeName}</h3><p>${placeDesc}</p>`))
                     .addTo(map);
