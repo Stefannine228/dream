@@ -23,12 +23,12 @@
 <div id="map"></div>
 
 <div id="infoBox">
-    <button id="closeBtn" onclick="closeInfoBox()">❌</button>
-    <label>Location Name:</label>
-    <input type="text" id="placeName" placeholder="Enter name">
-    <label>Description:</label>
-    <input type="text" id="placeDesc" placeholder="Describe the issue">
-    <input type="button" onclick="saveMarker()">Add Place</input>
+    <button class="Nunition-text" id="closeBtn" onclick="closeInfoBox()">Close ❌</button>
+    <label class="Nunition-text">Location Name:</label>
+    <input class="Nunition-text" type="text" id="placeName" placeholder="Enter name">
+    <label class="Nunition-text ">Description:</label>
+    <input class="Nunition-text" type="text" id="placeDesc" placeholder="Describe the issue">
+    <input class="Nunition-text" type="button" id="add" onclick="saveMarker()" value="Add"></input>
 </div>
 
 
@@ -113,10 +113,10 @@ function initializeMap(centerCoords) {
             if (!markData) {
                 markData = new mapboxgl.Marker({ color: "green" })
                     .setLngLat(selectedCoords)
-                    .setPopup(new mapboxgl.Popup().setHTML(`<h3>${placeName}</h3><p>${placeDesc}</p>`))
                     .addTo(map);
                 document.getElementById("infoBox").style.display = "block";
             } else {
+                closeInfoBox()
                 markData.remove();
                 markData = null;
                 document.getElementById("infoBox").style.display = "none";
@@ -161,7 +161,7 @@ function saveMarker() {
     }
     markData = new mapboxgl.Marker({ color: "red" })
                 .setLngLat(selectedCoords)
-                .setPopup(new mapboxgl.Popup().setHTML(`<h3>${placeName}</h3><p>${placeDesc}</p>`))
+                .setPopup(new mapboxgl.Popup().setHTML(`<h3 class="maker1">${placeName}</h3><p class="maker1">${placeDesc}</p>`))
                 .addTo(map);
     markData = null;
 
