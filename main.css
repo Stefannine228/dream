@@ -10,7 +10,7 @@ body { margin: 0; padding: 0; background: #040025; }
     border-width: 0;
     color: rgb(190, 205, 255);
     background-color: #180033;
-    height: 12%;
+    height: 40px;
     width: 250px;
     margin-top: 20px;
     transition: 0.2s ease-out;
@@ -18,24 +18,14 @@ body { margin: 0; padding: 0; background: #040025; }
 }
 #cityEnter{
     background-color: #180033;
-    transition: 0.2s ease-out;
-    animation-duration: 0.2;
 }
 .Nunition:hover {
     transition: 0.5s ease-out;
     animation-duration: 0.5;
-    border-width: 1px;
-    border-style: solid;
     border-color: white;
-    transform: scale(1.1);
-    box-shadow: 0px 0px 20px 1px rgb(33, 26, 128);
 }
 
 #cityInput:focus {
-    transition: 0.1s ease-out;
-    animation-duration: 0.1;
-    border-width: 1px;
-    box-shadow: 0px 0px 20px 1px rgb(33, 26, 128);
 }
 #cityInput{
     margin-top: 100px;
@@ -50,9 +40,6 @@ body { margin: 0; padding: 0; background: #040025; }
 }
 /* Модальне вікно */
 #locationPrompt {
-    
-    transition-duration: 0.5s;
-    animation-duration: 0.2;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -67,12 +54,6 @@ body { margin: 0; padding: 0; background: #040025; }
     font-family: Arial, sans-serif;
 }
 #locationPrompt:hover {
-    transition-duration: 0.5s;
-    animation-duration: 0.5;
-    width: 340px;
-    height: 440px;
-    box-shadow: 0px 0px 40px 5px white;
-    border-radius: 25px;
 }
 #infoBox {
     position: absolute;
