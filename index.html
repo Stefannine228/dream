@@ -22,13 +22,18 @@
 <!-- Карта -->
 <div id="map"></div>
 
+
+
 <div id="infoBox">
     <button class="Nunition-text" id="closeBtn" onclick="closeInfoBox()">Close ❌</button>
+     <div class="addData">
     <label class="Nunition-text">Location Name:</label>
     <input class="Nunition-text" type="text" id="placeName" placeholder="Enter name">
     <label class="Nunition-text ">Description:</label>
     <input class="Nunition-text" type="text" id="placeDesc" placeholder="Describe the issue">
-    <input class="Nunition-text" type="button" id="add" onclick="saveMarker()" value="Add"></input>
+    <input class="Nunition-text" type="button" id="add addDataBtn" onclick="saveMarker()" value="Add"></input>
+     <button id="login">Вхід</button>
+     </div>
 </div>
 
 
@@ -182,6 +187,7 @@ function closeInfoBox() {
 document.getElementById("cityEnter").addEventListener("click", setMapLocation);
 
 </script>
-
+<script type="module" src="firebaseApp.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
