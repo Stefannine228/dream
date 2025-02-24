@@ -87,7 +87,7 @@ function initializeMap(centerCoords) {
 
     const marker = new mapboxgl.Marker({ color: "blue" })
         .setLngLat(centerCoords)
-        .setPopup(new mapboxgl.Popup().setHTML("<strong>Ваша локація</strong>"))
+        .setPopup(new mapboxgl.Popup({ anchor: 'left' }).setHTML("<strong>Ваша локація</strong>"))
         .addTo(map);
 
     map.on('mouseenter', () => {
@@ -166,7 +166,7 @@ function saveMarker() {
     }
     markData = new mapboxgl.Marker({ color: "red" })
                 .setLngLat(selectedCoords)
-                .setPopup(new mapboxgl.Popup().setHTML(`<h3 class="maker1">${placeName}</h3><p class="maker1">${placeDesc}</p>`))
+                .setPopup(new mapboxgl.Popup({ anchor: 'left' }).setHTML(`<h3 class="maker1">${placeName}</h3><p class="maker1">${placeDesc}</p>`))
                 .addTo(map);
     markData = null;
 

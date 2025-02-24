@@ -113,6 +113,8 @@ body { margin: 0; padding: 0; background: #040025; }
     height: 40px;
     cursor: pointer;
 }
+.mapboxgl-popup-anchor-bottom{
+}
 #closeBtn {
     cursor: pointer;
     margin-top: 0;
