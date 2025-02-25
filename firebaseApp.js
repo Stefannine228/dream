@@ -17,31 +17,30 @@ import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.3.1
   const auth = getAuth(app);
 
   const loginBtn = document.getElementById('login')
-  const addDataBtn = document.getElementsByClassName('addDataBtn')
+  const addDataBtn = document.querySelector('.addDataBtn')
 
 
-  document.addEventListener('DOMContentLoaded', function(){ 
+  document.addEventListener('DOMContentLoaded', function() { 
     onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("✅ User is authenticated:", user.uid);
-        document.getElementById("addDataBtn").style.display = "block";
+        addDataBtn.style.display = "block";
         document.getElementById('login').style.display = "none";
       } else {
         console.log("❌ No authenticated user found!");
-        document.getElementsByClassName("addDataBtn").style.display  = "none";
+        addDataBtn.style.display  = "none";
         document.getElementById('login').style.display = "block";
       }
     });
-  
   });
 
-  
-  
-  async function googleLogin() {
+  export async function googleLogin() {
   
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
+
+      console.log(result, 'result')
   
       const uid = result.user.uid;
       const token = await result.user.getIdToken();
@@ -66,13 +65,14 @@ const db = getDatabase();
   async function saveUIDToFirebase(user) {
     try {
       const db = getDatabase();
+      console.log(user, 'user')
       const userRef = ref(db, `users/${user.uid}`);
   
       console.log("📌 Writing to Firebase at:", `users/${user.uid}`);
   
       await set(userRef, {
         uid: user.uid,
-        email: user.email || "No Email",
+        email: user.userEmail,
         timestamp: Date.now()
       });
   
@@ -86,8 +86,6 @@ const db = getDatabase();
       console.error("❌ Firebase write error:", error);
     }
   }
-
-
 
   async function googleLogout() {
     try {
