@@ -14,35 +14,38 @@
 <div id="locationPrompt">
     <form >
         <h3>Введіть своє місто</h3>
-        <input class="Nunition" type="text" id="cityInput" placeholder="Наприклад: Львів">
+        <input class="Nunition" type="text" value="Lviv" id="cityInput" placeholder="Наприклад: Львів">
         <button type="submit" class="Nunition" id="cityEnter">Знайти</button>
     </form>
 </div>
-
-<!-- Карта -->
 <div id="map"></div>
-
-
-
 <div id="infoBox">
-    <button class="Nunition-text" id="closeBtn" onclick="closeInfoBox()">Close ❌</button>
+    <button class="Nunition-text" id="closeBtn">Close ❌</button>
      <div class="addData">
-    <label class="Nunition-text">Location Name:</label>
-    <input class="Nunition-text" type="text" id="placeName" placeholder="Enter name">
-    <label class="Nunition-text ">Description:</label>
-    <input class="Nunition-text" type="text" id="placeDesc" placeholder="Describe the issue">
-    <input class="Nunition-text" type="button" id="add addDataBtn" onclick="saveMarker()" value="Add"></input>
-     <button id="login">Вхід</button>
+        <label class="Nunition-text">Location Name:</label>
+        <input class="Nunition-text" type="text" id="placeName" placeholder="Enter name">
+        <label class="Nunition-text ">Description:</label>
+        <input class="Nunition-text" type="text" id="placeDesc" placeholder="Describe the issue">
+        <input class="Nunition-text addDataBtn" type="button" id="add" value="Add"></input>
+        <button id="login">Вхід</button>
      </div>
 </div>
+<script type="module" src="firebaseApp.js"></script>
+<script type="module">
+    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
+    const db = getDatabase();
+    const auth = getAuth();
 
-<script>
    mapboxgl.accessToken = 'pk.eyJ1Ijoicm9tYW5rcmF2ZXRzIiwiYSI6ImNrZ2hzajNpejAweDYycW14NXZtYjJycWYifQ.0VN2Nw-1t2JfOHlcSlTYmg';
 
 let map;
 let selectedCoords = null;
 let markData = null; // Initialize markData
+
+const addDataBtn = document.querySelector('.addDataBtn')
+
 
 // Function to search for city coordinates
 async function getCityCoordinates(city) {
@@ -56,8 +59,30 @@ async function getCityCoordinates(city) {
     }
 }
 
-async function setMapLocation() {
-    event.preventDefault(); 
+function loadMarkers(map) {
+    const db = getDatabase();
+    const markersRef = ref(db, "markers");
+
+    onValue(markersRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const markersData = snapshot.val();
+            Object.keys(markersData).forEach((key) => {
+                const markerInfo = markersData[key];
+
+                markData = new mapboxgl.Marker({ color: "red" })
+                .setLngLat({ lat: markerInfo.coordinates.lat, lng: markerInfo.coordinates.lng })
+                .setPopup(new mapboxgl.Popup().setHTML(`<h3 class="maker1">${markerInfo.name}</h3><p class="maker1">${markerInfo.description}</p>`))
+                .addTo(map);
+            });
+        } else {
+            console.log("❌ No markers found!");
+        }
+    });
+}
+
+
+async function setMapLocation(event) {
+    event.preventDefault();
     const city = document.getElementById("cityInput").value;
     if (!city) {
         alert("Будь ласка, введіть місто!");
@@ -73,7 +98,6 @@ async function setMapLocation() {
     return false;
 }
 
-// Function to initialize the map
 function initializeMap(centerCoords) {
     document.getElementById("locationPrompt").style.display = "none";
     document.getElementById("map").style.display = "block";
@@ -84,6 +108,8 @@ function initializeMap(centerCoords) {
         center: centerCoords,
         zoom: 12
     });
+
+    loadMarkers(map)
 
     const marker = new mapboxgl.Marker({ color: "blue" })
         .setLngLat(centerCoords)
@@ -151,7 +177,8 @@ function getUserLocation() {
 
 getUserLocation();
 
-function saveMarker() {
+async function saveMarker() {
+    const user = auth.currentUser;  // Get the authenticated user
     const placeName = document.getElementById("placeName").value;
     const placeDesc = document.getElementById("placeDesc").value;
 
@@ -164,6 +191,28 @@ function saveMarker() {
         alert("Please select a point on the map!");
         return;
     }
+
+    const markerData = {
+        name: placeName,
+        description: placeDesc,
+        coordinates: {
+            lat: selectedCoords.lat,
+            lng: selectedCoords.lng
+        },
+        timestamp: Date.now()  // Store the timestamp
+    };
+
+    const markersRef = ref(db, `users/${user.uid}/markers`);
+    const markersAllRef = ref(db, `markers`);
+
+
+    const newMarkerRef = push(markersRef);
+    const newMarkersAllRef = push(markersAllRef);
+    await set(newMarkerRef, markerData);
+    await set(newMarkersAllRef, markerData);
+
+
+
     markData = new mapboxgl.Marker({ color: "red" })
                 .setLngLat(selectedCoords)
                 .setPopup(new mapboxgl.Popup().setHTML(`<h3 class="maker1">${placeName}</h3><p class="maker1">${placeDesc}</p>`))
@@ -185,9 +234,11 @@ function closeInfoBox() {
 }
 
 document.getElementById("cityEnter").addEventListener("click", setMapLocation);
+document.querySelector(".addDataBtn").addEventListener("click", saveMarker);
+document.getElementById("closeBtn").addEventListener('click', closeInfoBox)
+
 
 </script>
-<script type="module" src="firebaseApp.js"></script>
 <script type="module" src="script.js"></script>
 </body>
 </html>
