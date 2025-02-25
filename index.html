@@ -11,29 +11,44 @@
 <body>
 
 <!-- Форма для введення міста -->
-<div id="locationPrompt">
-    <form >
-        <h3>Введіть своє місто</h3>
-        <input class="Nunition" type="text" value="Lviv" id="cityInput" placeholder="Наприклад: Львів">
-        <button type="submit" class="Nunition" id="cityEnter">Знайти</button>
-    </form>
-</div>
-<div id="map"></div>
-<div id="infoBox">
-    <button class="Nunition-text" id="closeBtn">Close ❌</button>
-     <div class="addData">
-        <label class="Nunition-text">Location Name:</label>
-        <input class="Nunition-text" type="text" id="placeName" placeholder="Enter name">
-        <label class="Nunition-text ">Description:</label>
-        <input class="Nunition-text" type="text" id="placeDesc" placeholder="Describe the issue">
-        <input class="Nunition-text addDataBtn" type="button" id="add" value="Add"></input>
-        <button id="login">Вхід</button>
-     </div>
+
+
+<div id="map-container">
+    <!-- Mapbox Map -->
+    <div id="locationPrompt">
+        <form >
+            <h3>Введіть своє місто</h3>
+            <input class="Nunition" type="text" value="Lviv" id="cityInput" placeholder="Наприклад: Львів">
+            <button type="submit" class="Nunition" id="cityEnter">Знайти</button>
+        </form>
+    </div>
+    <div id="map"></div>
+
+    <!-- Info Panel -->
+    <div id="info-panel">
+        <h3>Marker Info</h3>
+        <p id="marker-info">Click a marker to see details.</p>
+    </div>
+
+    <!-- Login Button -->
+    <button id="login-btn">Login</button>
+    <div id="infoBox">
+        <button class="Nunition-text" id="closeBtn">Close ❌</button>
+         <div class="addData">
+            <label class="Nunition-text">Location Name:</label>
+            <input class="Nunition-text" type="text" id="placeName" placeholder="Enter name">
+            <label class="Nunition-text ">Description:</label>
+            <input class="Nunition-text" type="text" id="placeDesc" placeholder="Describe the issue">
+            <input class="Nunition-text addDataBtn" type="button" id="add" value="Add"></input>
+            <button id="login">Вхід</button>
+         </div>
+    </div>
 </div>
 <script type="module" src="firebaseApp.js"></script>
 <script type="module">
-    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+    import { getDatabase, ref, push, set, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { googleLogin } from './firebaseApp.js';
 
     const db = getDatabase();
     const auth = getAuth();
@@ -69,15 +84,74 @@ function loadMarkers(map) {
             Object.keys(markersData).forEach((key) => {
                 const markerInfo = markersData[key];
 
+                const currentRating = markerInfo.rating || 0;
+                const popupHTML = `
+                <h3 class="maker1">${markerInfo.name}</h3>
+                <p class="maker1">${markerInfo.description}</p>
+                <p>Підтримали: <span id="rating-${key}">${currentRating}</span></p>
+                <p>До підтримки звернення:</p>
+                <button onclick="voteMarker('${key}', 1)">+1</button>
+                `;
+
                 markData = new mapboxgl.Marker({ color: "red" })
                 .setLngLat({ lat: markerInfo.coordinates.lat, lng: markerInfo.coordinates.lng })
-                .setPopup(new mapboxgl.Popup().setHTML(`<h3 class="maker1">${markerInfo.name}</h3><p class="maker1">${markerInfo.description}</p>`))
+                .setPopup(new mapboxgl.Popup().setHTML(popupHTML))
                 .addTo(map);
             });
         } else {
             console.log("❌ No markers found!");
         }
     });
+}
+
+function voteMarker(markerId, delta) {
+  const db = getDatabase();
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("You must be logged in to vote!");
+    return;
+  }
+
+
+  const userId = user.uid;
+  const markerRef = ref(db, `markers/${markerId}`);
+  const userVoteRef = ref(db, `users/${userId}/votes/${markerId}`);
+
+
+  runTransaction(markerRef, (marker) => {
+    if (!marker) {
+      return marker;
+    }
+
+    if (!marker.votes) {
+      marker.votes = {};
+    }
+
+    const previousVote = marker.votes[userId] || 0;
+
+    if (previousVote === delta) {
+      marker.rating -= delta;
+      delete marker.votes[userId];
+      set(userVoteRef, null);
+    } else {
+      marker.rating += delta - previousVote;
+      marker.votes[userId] = delta;
+      set(userVoteRef, delta);
+    }
+
+    return marker;
+  })
+  .then((result) => {
+    console.log("Vote updated:", result.snapshot.val());
+    const ratingSpan = document.getElementById(`rating-${markerId}`);
+    if (ratingSpan) {
+      ratingSpan.innerText = result.snapshot.val().rating;
+    }
+  })
+  .catch((error) => {
+    console.error("Error updating vote:", error);
+  });
 }
 
 
@@ -115,6 +189,7 @@ function initializeMap(centerCoords) {
         .setLngLat(centerCoords)
         .setPopup(new mapboxgl.Popup().setHTML("<strong>Ваша локація</strong>"))
         .addTo(map);
+        
 
     map.on('mouseenter', () => {
         map.getCanvas().style.cursor = 'crosshair';
@@ -123,6 +198,8 @@ function initializeMap(centerCoords) {
     map.on('mouseleave', () => {
         map.getCanvas().style.cursor = '';
     });
+
+    document.getElementById("login-btn").addEventListener("click", googleLogin);
 
     map.on('click', (event) => {
         selectedCoords = event.lngLat;
@@ -199,7 +276,8 @@ async function saveMarker() {
             lat: selectedCoords.lat,
             lng: selectedCoords.lng
         },
-        timestamp: Date.now()  // Store the timestamp
+        timestamp: Date.now(),  // Store the timestamp
+        rating: 0
     };
 
     const markersRef = ref(db, `users/${user.uid}/markers`);
@@ -237,6 +315,7 @@ document.getElementById("cityEnter").addEventListener("click", setMapLocation);
 document.querySelector(".addDataBtn").addEventListener("click", saveMarker);
 document.getElementById("closeBtn").addEventListener('click', closeInfoBox)
 
+window.voteMarker = voteMarker;
 
 </script>
 <script type="module" src="script.js"></script>

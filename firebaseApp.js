@@ -34,7 +34,7 @@ import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.3.1
     });
   });
 
-  async function googleLogin() {
+  export async function googleLogin() {
   
     const provider = new GoogleAuthProvider();
     try {
