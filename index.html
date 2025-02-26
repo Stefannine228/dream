@@ -8,7 +8,7 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
     <link rel="stylesheet" href="main.css">
 </head>
-<body>
+<body id="body">
 
 <!-- Форма для введення міста -->
 
@@ -25,10 +25,6 @@
     <div id="map"></div>
 
     <!-- Info Panel -->
-    <div id="info-panel">
-        <h3>Marker Info</h3>
-        <p id="marker-info">Click a marker to see details.</p>
-    </div>
 
     <!-- Login Button -->
     <button id="login-btn">Login</button>
@@ -173,9 +169,10 @@ async function setMapLocation(event) {
 }
 
 function initializeMap(centerCoords) {
+    let k = 0
     document.getElementById("locationPrompt").style.display = "none";
     document.getElementById("map").style.display = "block";
-
+    ensureInfoPanel()
     map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v12',
@@ -219,6 +216,7 @@ function initializeMap(centerCoords) {
 
         if (!markerClicked) {
             if (!markData) {
+                document.getElementById("info-panel")?.remove();
                 markData = new mapboxgl.Marker({ color: "green" })
                     .setLngLat(selectedCoords)
                     .addTo(map);
@@ -258,6 +256,7 @@ async function saveMarker() {
     const user = auth.currentUser;  // Get the authenticated user
     const placeName = document.getElementById("placeName").value;
     const placeDesc = document.getElementById("placeDesc").value;
+    document.getElementById("info-panel")?.remove();
 
     if (!placeName || !placeDesc) {
         alert("Please enter name and description!");
@@ -301,6 +300,7 @@ async function saveMarker() {
 }
 
 function closeInfoBox() {
+    ensureInfoPanel();
     document.getElementById("infoBox").style.display = "none";
     document.getElementById("placeName").value = "";
     document.getElementById("placeDesc").value = "";
@@ -310,11 +310,34 @@ function closeInfoBox() {
         markData = null;
     }
 }
+function closepanel() {
+    let infoPanel = document.getElementById("info-panel");
+    infoPanel.remove();
+    localStorage.setItem('info-panel', 'closed');
+}
+function ensureInfoPanel() {
+    let infoPanel = document.getElementById("info-panel");
+    let a = localStorage.getItem('info-panel');
+    if (!infoPanel) {
+        if (a !== 'closed') {
+        document.body.insertAdjacentHTML("beforeend", `
+            <div id='info-panel'>
+                <div>
+                    <h3>Marker Info</h3>
+                    <p id='marker-info'>Click a marker to see details.</p>
+                </div> 
+                <input type='button' id='close-panel' value='X'>
+            </div>
+        `);
+        document.getElementById("close-panel").addEventListener('click', closepanel);
+    }
+}
+}
 
 document.getElementById("cityEnter").addEventListener("click", setMapLocation);
 document.querySelector(".addDataBtn").addEventListener("click", saveMarker);
 document.getElementById("closeBtn").addEventListener('click', closeInfoBox)
-
+document.getElementById("close-panel").addEventListener('click', closepanel)
 window.voteMarker = voteMarker;
 
 </script>
