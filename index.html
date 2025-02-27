@@ -18,7 +18,7 @@
     <div id="locationPrompt">
         <form >
             <h3>Введіть своє місто</h3>
-            <input class="Nunition" type="text" value="Lviv" id="cityInput" placeholder="Наприклад: Львів">
+            <input class="Nunition" type="text" value="" id="cityInput" placeholder="Наприклад: Київ">
             <button type="submit" class="Nunition" id="cityEnter">Знайти</button>
         </form>
     </div>
@@ -29,13 +29,13 @@
     <!-- Login Button -->
     <button id="login-btn">Login</button>
     <div id="infoBox">
-        <button class="Nunition-text" id="closeBtn">Close ❌</button>
+        <button class="Nunition-text" id="closeBtn">Відмінити ❌</button>
          <div class="addData">
-            <label class="Nunition-text">Location Name:</label>
-            <input class="Nunition-text" type="text" id="placeName" placeholder="Enter name">
-            <label class="Nunition-text ">Description:</label>
-            <input class="Nunition-text" type="text" id="placeDesc" placeholder="Describe the issue">
-            <input class="Nunition-text addDataBtn" type="button" id="add" value="Add"></input>
+            <label class="Nunition-text">Назва локації:</label>
+            <input class="Nunition-text" type="text" id="placeName" placeholder="Введіть назву">
+            <label class="Nunition-text ">Опис:</label>
+            <input class="Nunition-text" type="text" id="placeDesc" placeholder="Опис локації">
+            <input class="Nunition-text addDataBtn" type="button" id="add" value="Створити"></input>
             <button id="login">Вхід</button>
          </div>
     </div>
@@ -221,6 +221,7 @@ function initializeMap(centerCoords) {
                     .setLngLat(selectedCoords)
                     .addTo(map);
                 document.getElementById("infoBox").style.display = "block";
+                
             } else {
                 closeInfoBox()
                 markData.remove();
@@ -323,8 +324,8 @@ function ensureInfoPanel() {
         document.body.insertAdjacentHTML("beforeend", `
             <div id='info-panel'>
                 <div>
-                    <h3>Marker Info</h3>
-                    <p id='marker-info'>Click a marker to see details.</p>
+                    <h3 id='maker-info-h'>Інформація про маркер</h3>
+                    <h4 id='marker-info-p'>Натисність на маркер щоб отримати детальнішу інформацію.</h4>
                 </div> 
                 <input type='button' id='close-panel' value='X'>
             </div>
