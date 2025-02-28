@@ -86,7 +86,7 @@ function loadMarkers(map) {
                 <p class="maker1">${markerInfo.description}</p>
                 <p>Підтримали: <span id="rating-${key}">${currentRating}</span></p>
                 <p>До підтримки звернення:</p>
-                <button onclick="voteMarker('${key}', 1)">+1</button>
+                <button onclick="voteMarker('${key}', 1)">Проголосувати</button>
                 `;
 
                 markData = new mapboxgl.Marker({ color: "red" })
