@@ -105,7 +105,7 @@ function voteMarker(markerId, delta) {
   const user = auth.currentUser;
 
   if (!user) {
-    alert("You must be logged in to vote!");
+    alert("Ви мусите бути зарегестрованими що проголосувати!");
     return;
   }
 
@@ -258,12 +258,12 @@ async function saveMarker() {
     const placeDesc = document.getElementById("placeDesc").value;
 
     if (!placeName || !placeDesc) {
-        alert("Please enter name and description!");
+        alert("Будь ласка введіть опис!");
         return;
     }
 
     if (!selectedCoords) {
-        alert("Please select a point on the map!");
+        alert("Будь ласка виберіть точку на мапі");
         return;
     }
 
