@@ -6,201 +6,339 @@
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js"></script>
-    <style>
-        body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; display: none; }
-        
-        /* Модальне вікно */
-        #locationPrompt {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            font-family: Arial, sans-serif;
-        }
-
-        #infoBox {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 5px;
-            font-family: Arial, sans-serif;
-            display: none;
-            width: 250px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        input, button {
-            margin-top: 10px;
-            padding: 8px;
-            width: 80%;
-        }
-    </style>
+    <link rel="stylesheet" href="main.css">
 </head>
-<body>
+<body id="body">
 
 <!-- Форма для введення міста -->
-<div id="locationPrompt">
-    <h3>Введіть своє місто</h3>
-    <input type="text" id="cityInput" placeholder="Наприклад: Львів">
-    <button onclick="setMapLocation()">Знайти</button>
+
+
+<div id="map-container">
+    <!-- Mapbox Map -->
+    <div id="locationPrompt">
+        <form >
+            <h3>Введіть своє місто</h3>
+            <input class="Nunition" type="text" value="" id="cityInput" placeholder="Наприклад: Київ">
+            <button type="submit" class="Nunition" id="cityEnter">Знайти</button>
+        </form>
+    </div>
+    <div id="map"></div>
+
+    <!-- Info Panel -->
+
+    <!-- Login Button -->
+    <button id="login-btn">Login</button>
+    <div id="infoBox">
+        <button class="Nunition-text" id="closeBtn">Відмінити ❌</button>
+         <div class="addData">
+            <label class="Nunition-text">Назва локації:</label>
+            <input class="Nunition-text" type="text" id="placeName" placeholder="Введіть назву">
+            <label class="Nunition-text ">Опис:</label>
+            <input class="Nunition-text" type="text" id="placeDesc" placeholder="Опис локації">
+            <input class="Nunition-text addDataBtn" type="button" id="add" value="Створити"></input>
+            <button id="login">Вхід</button>
+         </div>
+    </div>
 </div>
+<script type="module" src="firebaseApp.js"></script>
+<script type="module">
+    import { getDatabase, ref, push, set, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { googleLogin } from './firebaseApp.js';
 
-<!-- Карта -->
-<div id="map"></div>
+    const db = getDatabase();
+    const auth = getAuth();
 
-<div id="infoBox">
-    <button id="closeBtn" onclick="closeInfoBox()">❌</button>
-    <label>Location Name:</label>
-    <input type="text" id="placeName" placeholder="Enter name">
-    <label>Description:</label>
-    <input type="text" id="placeDesc" placeholder="Describe the issue">
-    <button onclick="saveMarker()">Add Place</button>
-</div>
+   mapboxgl.accessToken = 'pk.eyJ1Ijoicm9tYW5rcmF2ZXRzIiwiYSI6ImNrZ2hzajNpejAweDYycW14NXZtYjJycWYifQ.0VN2Nw-1t2JfOHlcSlTYmg';
+
+let map;
+let selectedCoords = null;
+let markData = null; // Initialize markData
+
+const addDataBtn = document.querySelector('.addDataBtn')
 
 
-<script>
-    mapboxgl.accessToken = 'pk.eyJ1Ijoicm9tYW5rcmF2ZXRzIiwiYSI6ImNrZ2hzajNpejAweDYycW14NXZtYjJycWYifQ.0VN2Nw-1t2JfOHlcSlTYmg';
+// Function to search for city coordinates
+async function getCityCoordinates(city) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${city}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.length > 0) {
+        return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+    } else {
+        return null;
+    }
+}
 
-    let map;
-    let selectedCoords = null;
+function loadMarkers(map) {
+    const db = getDatabase();
+    const markersRef = ref(db, "markers");
 
-    
-    // Функція для пошуку міста
-    async function getCityCoordinates(city) {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${city}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.length > 0) {
-            return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+    onValue(markersRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const markersData = snapshot.val();
+            Object.keys(markersData).forEach((key) => {
+                const markerInfo = markersData[key];
+
+                const currentRating = markerInfo.rating || 0;
+                const popupHTML = `
+                <h3 class="maker1">${markerInfo.name}</h3>
+                <p class="maker1">${markerInfo.description}</p>
+                <p>Підтримали: <span id="rating-${key}">${currentRating}</span></p>
+                <p>До підтримки звернення:</p>
+                <button onclick="voteMarker('${key}', 1)">+1</button>
+                `;
+
+                markData = new mapboxgl.Marker({ color: "red" })
+                .setLngLat({ lat: markerInfo.coordinates.lat, lng: markerInfo.coordinates.lng })
+                .setPopup(new mapboxgl.Popup().setHTML(popupHTML))
+                .addTo(map);
+            });
         } else {
-            return null;
+            console.log("❌ No markers found!");
         }
+    });
+}
+
+function voteMarker(markerId, delta) {
+  const db = getDatabase();
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("You must be logged in to vote!");
+    return;
+  }
+
+
+  const userId = user.uid;
+  const markerRef = ref(db, `markers/${markerId}`);
+  const userVoteRef = ref(db, `users/${userId}/votes/${markerId}`);
+
+
+  runTransaction(markerRef, (marker) => {
+    if (!marker) {
+      return marker;
     }
 
-    // Функція для встановлення карти
-    async function setMapLocation() {
-        const city = document.getElementById("cityInput").value;
-        if (!city) {
-            alert("Будь ласка, введіть місто!");
-            return;
-        }
-
-        const coordinates = await getCityCoordinates(city);
-        if (coordinates) {
-            initializeMap(coordinates);
-        } else {
-            alert("Не вдалося знайти це місто. Введіть інше.");
-        }
+    if (!marker.votes) {
+      marker.votes = {};
     }
 
-    // Ініціалізація карти
-    function initializeMap(centerCoords) {
-        document.getElementById("locationPrompt").style.display = "none";
-        document.getElementById("map").style.display = "block";
+    const previousVote = marker.votes[userId] || 0;
 
-        map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12',
-            center: centerCoords,
-            zoom: 12
-        });
+    if (previousVote === delta) {
+      marker.rating -= delta;
+      delete marker.votes[userId];
+      set(userVoteRef, null);
+    } else {
+      marker.rating += delta - previousVote;
+      marker.votes[userId] = delta;
+      set(userVoteRef, delta);
+    }
 
-        new mapboxgl.Marker({ color: "blue" })
-            .setLngLat(centerCoords)
-            .setPopup(new mapboxgl.Popup().setHTML("<strong>Ваша локація</strong>"))
-            .addTo(map);
+    return marker;
+  })
+  .then((result) => {
+    console.log("Vote updated:", result.snapshot.val());
+    const ratingSpan = document.getElementById(`rating-${markerId}`);
+    if (ratingSpan) {
+      ratingSpan.innerText = result.snapshot.val().rating;
+    }
+  })
+  .catch((error) => {
+    console.error("Error updating vote:", error);
+  });
+}
 
-             // Store clicked coordinates
 
-     map.on('click', (event) => {
-            selectedCoords = event.lngLat;
-            map.getCanvas().style.cursor = 'wait'; // Change cursor to waiting
-            document.getElementById("infoBox").style.display = "block";
-        });
+async function setMapLocation(event) {
+    event.preventDefault();
+    const city = document.getElementById("cityInput").value;
+    if (!city) {
+        alert("Будь ласка, введіть місто!");
+        return;
+    }
 
-// Change cursor on map interaction
-map.on('mouseenter', () => {
-    map.getCanvas().style.cursor = 'crosshair';
-});
+    const coordinates = await getCityCoordinates(city);
+    if (coordinates) {
+        initializeMap(coordinates);
+    } else {
+        alert("Не вдалося знайти це місто. Введіть інше.");
+    }
+    return false;
+}
 
-map.on('mouseleave', () => {
-    map.getCanvas().style.cursor = '';
-});
+function initializeMap(centerCoords) {
+    let k = 0
+    document.getElementById("locationPrompt").style.display = "none";
+    document.getElementById("map").style.display = "block";
+    ensureInfoPanel()
+    map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: centerCoords,
+        zoom: 12
+    });
 
-map.on('click', (event) => {
-    selectedCoords = event.lngLat;
-    map.getCanvas().style.cursor = 'wait'; // Change cursor to waiting
-    document.getElementById("infoBox").style.display = "block";
-});
+    loadMarkers(map)
 
-// Close the input box
+    const marker = new mapboxgl.Marker({ color: "blue" })
+        .setLngLat(centerCoords)
+        .setPopup(new mapboxgl.Popup().setHTML("<strong>Ваша локація</strong>"))
+        .addTo(map);
+        
+
+    map.on('mouseenter', () => {
+        map.getCanvas().style.cursor = 'crosshair';
+    });
+
+    map.on('mouseleave', () => {
+        map.getCanvas().style.cursor = '';
+    });
+
+    document.getElementById("login-btn").addEventListener("click", googleLogin);
+
+    map.on('click', (event) => {
+        selectedCoords = event.lngLat;
+        let markerClicked = false;
+        const markerElements = document.getElementsByClassName('mapboxgl-marker');
+        const clickX = event.originalEvent.clientX;
+        const clickY = event.originalEvent.clientY;
+
+        for (let i = 0; i < markerElements.length; i++) {
+            const boundingBox = markerElements[i].getBoundingClientRect();
+            if (clickX >= boundingBox.left && clickX <= boundingBox.right &&
+                clickY >= boundingBox.top && clickY <= boundingBox.bottom) {
+                markerClicked = true;
+                break;
+            }
+        }
+
+        if (!markerClicked) {
+            if (!markData) {
+                markData = new mapboxgl.Marker({ color: "green" })
+                    .setLngLat(selectedCoords)
+                    .addTo(map);
+                document.getElementById("infoBox").style.display = "block";
+                
+            } else {
+                closeInfoBox()
+                markData.remove();
+                markData = null;
+                document.getElementById("infoBox").style.display = "none";
+                document.getElementById("infoBox").style.display = "block";
+            }
+        } else {
+            document.getElementById("infoBox").style.display = "none";
+        }
+    });
+}
+
+function getUserLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const userCoords = [position.coords.longitude, position.coords.latitude];
+                initializeMap(userCoords);
+            },
+            () => {
+                document.getElementById("locationPrompt").style.display = "block";
+            }
+        );
+    } else {
+        document.getElementById("locationPrompt").style.display = "block";
+    }
+}
+
+getUserLocation();
+
+async function saveMarker() {
+    const user = auth.currentUser;  // Get the authenticated user
+    const placeName = document.getElementById("placeName").value;
+    const placeDesc = document.getElementById("placeDesc").value;
+
+    if (!placeName || !placeDesc) {
+        alert("Please enter name and description!");
+        return;
+    }
+
+    if (!selectedCoords) {
+        alert("Please select a point on the map!");
+        return;
+    }
+
+    const markerData = {
+        name: placeName,
+        description: placeDesc,
+        coordinates: {
+            lat: selectedCoords.lat,
+            lng: selectedCoords.lng
+        },
+        timestamp: Date.now(),  // Store the timestamp
+        rating: 0
+    };
+
+    const markersRef = ref(db, `users/${user.uid}/markers`);
+    const markersAllRef = ref(db, `markers`);
+
+
+    const newMarkerRef = push(markersRef);
+    const newMarkersAllRef = push(markersAllRef);
+    await set(newMarkerRef, markerData);
+    await set(newMarkersAllRef, markerData);
+
+
+
+    markData = new mapboxgl.Marker({ color: "red" })
+                .setLngLat(selectedCoords)
+                .setPopup(new mapboxgl.Popup().setHTML(`<h3 class="maker1">${placeName}</h3><p class="maker1">${placeDesc}</p>`))
+                .addTo(map);
+    markData = null;
+
+    closeInfoBox();
+}
+
 function closeInfoBox() {
     document.getElementById("infoBox").style.display = "none";
     document.getElementById("placeName").value = "";
     document.getElementById("placeDesc").value = "";
+
+    if (markData) {
+        markData.remove();
+        markData = null;
+    }
 }
+function closepanel() {
+    let infoPanel = document.getElementById("info-panel");
+    infoPanel.remove();
+    localStorage.setItem('info-panel', 'closed');
+}
+function ensureInfoPanel() {
+    let infoPanel = document.getElementById("info-panel");
+    let a = localStorage.getItem('info-panel');
+    if (!infoPanel) {
+        if (a !== 'closed') {
+        document.body.insertAdjacentHTML("beforeend", `
+            <div id='info-panel'>
+                <div>
+                    <h3 id='maker-info-h'>Про додаток</h3>
+                    <h4 id='marker-info-p'>Він дає змогу позначати проблемні або цікаві місця на карті, додаючи маркери з описами. Користувачі можуть залишати реакції на існуючі позначки, допомагаючи виділити найважливіші місця.</h4>
+                </div> 
+                <input type='button' id='close-panel' value='X'>
+            </div>
+        `);
+        document.getElementById("close-panel").addEventListener('click', closepanel);
     }
+}
+}
 
-    // Перевірка геолокації
-    function getUserLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userCoords = [position.coords.longitude, position.coords.latitude];
-                    initializeMap(userCoords);
-                },
-                () => {
-                    document.getElementById("locationPrompt").style.display = "block";
-                }
-            );
-        } else {
-            document.getElementById("locationPrompt").style.display = "block";
-        }
-    }
+document.getElementById("cityEnter").addEventListener("click", setMapLocation);
+document.querySelector(".addDataBtn").addEventListener("click", saveMarker);
+document.getElementById("closeBtn").addEventListener('click', closeInfoBox)
+document.getElementById("close-panel").addEventListener('click', closepanel)
+window.voteMarker = voteMarker;
 
-    // Запитати у користувача локацію
-    getUserLocation();
-
-    function saveMarker() {
-        const placeName = document.getElementById("placeName").value;
-        const placeDesc = document.getElementById("placeDesc").value;
-
-        if (!placeName || !placeDesc) {
-            alert("Please enter name and description!");
-            return;
-        }
-
-        if (!selectedCoords) {
-            alert("Please select a point on the map!");
-            return;
-        }
-
-        // Add marker
-        new mapboxgl.Marker({ color: "red" })
-            .setLngLat(selectedCoords)
-            .setPopup(new mapboxgl.Popup().setHTML(`<h3>${placeName}</h3><p>${placeDesc}</p>`))
-            .addTo(map);
-
-        // Reset cursor and form
-        map.getCanvas().style.cursor = 'grab'; // Change cursor back
-        closeInfoBox();
-    }
-
-    // Close the input box
-    function closeInfoBox() {
-        document.getElementById("infoBox").style.display = "none";
-        document.getElementById("placeName").value = "";
-        document.getElementById("placeDesc").value = "";
-    }
 </script>
-
+<script type="module" src="script.js"></script>
 </body>
 </html>
