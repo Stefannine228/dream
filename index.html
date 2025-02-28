@@ -216,7 +216,6 @@ function initializeMap(centerCoords) {
 
         if (!markerClicked) {
             if (!markData) {
-                document.getElementById("info-panel")?.remove();
                 markData = new mapboxgl.Marker({ color: "green" })
                     .setLngLat(selectedCoords)
                     .addTo(map);
@@ -257,7 +256,6 @@ async function saveMarker() {
     const user = auth.currentUser;  // Get the authenticated user
     const placeName = document.getElementById("placeName").value;
     const placeDesc = document.getElementById("placeDesc").value;
-    document.getElementById("info-panel")?.remove();
 
     if (!placeName || !placeDesc) {
         alert("Please enter name and description!");
@@ -301,7 +299,6 @@ async function saveMarker() {
 }
 
 function closeInfoBox() {
-    ensureInfoPanel();
     document.getElementById("infoBox").style.display = "none";
     document.getElementById("placeName").value = "";
     document.getElementById("placeDesc").value = "";
@@ -324,8 +321,8 @@ function ensureInfoPanel() {
         document.body.insertAdjacentHTML("beforeend", `
             <div id='info-panel'>
                 <div>
-                    <h3 id='maker-info-h'>Інформація про маркер</h3>
-                    <h4 id='marker-info-p'>Натисність на маркер щоб отримати детальнішу інформацію.</h4>
+                    <h3 id='maker-info-h'>Про додаток</h3>
+                    <h4 id='marker-info-p'>Він дає змогу позначати проблемні або цікаві місця на карті, додаючи маркери з описами. Користувачі можуть залишати реакції на існуючі позначки, допомагаючи виділити найважливіші місця.</h4>
                 </div> 
                 <input type='button' id='close-panel' value='X'>
             </div>

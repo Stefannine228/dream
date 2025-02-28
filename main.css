@@ -71,10 +71,7 @@ body { margin: 0; padding: 0; background: #040025; }
     box-shadow: 0px 0px 30px 2px rgb(255, 255, 255);
 }
 #infoBox {
-    float: right;
     position: relative;
-    margin-right: -70px;
-    margin-top: 70px;
     top: 10px;
     left: 10px;
     background: rgba(255, 255, 255, 0.9);
@@ -144,8 +141,8 @@ input, button {
 /* Info Panel (absolute position) */
 #info-panel {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 75px;
+    right: 20px;
     display: flex;
     background: rgba(255, 255, 255, 0.9);
     padding: 15px;
@@ -155,6 +152,7 @@ input, button {
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 10;
 }
+
 #maker-info-p {
     font-family: "Nunito", sans-serif;
 }
@@ -197,4 +195,22 @@ input, button {
 
 #login-btn:hover {
     background: #0056b3;
+}
+
+@media (max-width: 768px) {
+    #info-panel {
+        top: auto;
+        bottom: 10px;
+        left: 10px;
+        width: calc(100% - 40px);
+        max-width: none;
+        border-radius: 12px;
+        padding: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    #close-panel {
+        top: 5px;
+        right: 5px;
+    }
 }
