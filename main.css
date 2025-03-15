@@ -1,11 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
 
-body { margin: 0; padding: 0; background: #040025; }
-#map { position: absolute; top: 0; bottom: 0; width: 100%; display: none; }
-.Nunition { 
+body { 
     font-family: 'Nunito', sans-serif;
-    font-weight: bold;
+    margin: 0; 
+    padding: 0; 
+    background: #040025;
     font-size: 14px;
+ }
+
+#map { position: absolute; top: 0; bottom: 0; width: 100%; display: none; }
+
+.btn {
+    background: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-close-container {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: end;
+    
+}
+.btn-close {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    margin: 0;
+}
+
+.addData-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-item { 
+    font-weight: bold;
     border-radius: 12px;
     border-width: 0;
     color: rgb(190, 205, 255);
@@ -16,18 +50,29 @@ body { margin: 0; padding: 0; background: #040025; }
     transition: 0.2s ease-out;
     animation-duration: 0.2;
 }
-.Nunition-text{
-    font-family: 'Nunito', sans-serif;
-    font-weight: bold;
-    width: 100%;
-    margin-bottom: 30px;
-    padding: 0;
-    height: 30px;
+
+.input-item-search {
+    border-radius: 12px;
+    border-width: 0;
+    color: rgb(190, 205, 255);
+    background-color: #180033;
+    height: 40px;
+    transition: 0.2s ease-out;
+    animation-duration: 0.2;
+}
+.input-item-text{
+    margin: 10px 0;
+    text-align: start;
 }
 #cityEnter{
     background-color: #180033;
 }
-.Nunition:hover {
+.addData input, .addData textarea {
+    padding: 8px;
+    height: 30px;
+}
+
+.input-item:hover {
     transition-duration: 0.5s;
     animation-duration: 0.5;
     border-color: white;
@@ -45,7 +90,6 @@ body { margin: 0; padding: 0; background: #040025; }
 }
 #locationPrompt h3{
     font-size: 35px;
-    font-family: 'Nunito', sans-serif;
     margin-top: 50px;
 }
 /* Модальне вікно */
@@ -87,7 +131,6 @@ body { margin: 0; padding: 0; background: #040025; }
     margin-top: 10px;
 }
 .maker1{
-    font-family: 'Nunito', sans-serif;
     font-weight: bold;
 }
 .mapboxgl-popup-close-button{
@@ -113,18 +156,6 @@ body { margin: 0; padding: 0; background: #040025; }
     height: 40px;
     cursor: pointer;
 }
-#closeBtn {
-    cursor: pointer;
-    margin-top: 0;
-    height: 40px;
-    margin-bottom: 10px;
-}
-input, button {
-    margin-top: 10px;
-    padding: 8px;
-    width: 80%;
-}
-
 /* Container for map */
 #map-container {
     position: relative;
@@ -153,11 +184,7 @@ input, button {
     z-index: 10;
 }
 
-#maker-info-p {
-    font-family: "Nunito", sans-serif;
-}
 #maker-info-h{
-    font-family: "Nunito", sans-serif;
     font-weight: bold;
     font-size: 22px;
 }
@@ -181,17 +208,13 @@ input, button {
 #login-btn {
     position: relative;
     float: right;
+    z-index: 10;
     width: 100px;
     top: 20px;
     right: 20px;
-    background: #007bff;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 10;
 }
+
+
 
 #login-btn:hover {
     background: #0056b3;
@@ -213,4 +236,23 @@ input, button {
         top: 5px;
         right: 5px;
     }
+}
+
+#locationInMap {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+#locationInMap input {
+    margin-top: 0;
+    opacity: .9;
+    text-align: start;
+    padding: 0 10px;
+}
+
+#locationInMap button {
+    width: 75px;
 }

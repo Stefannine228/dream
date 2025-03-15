@@ -2,15 +2,24 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebas
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
+window.apiKey = "AIzaSyB4D_VgeVN61AV3RefuZjGGzConulsPTAE",
+window.authDomain ="map-dream-ed6e1.firebaseapp.com",
+window.databaseURL ="https://map-dream-ed6e1-default-rtdb.europe-west1.firebasedatabase.app",
+window.projectId = "map-dream-ed6e1",
+window.storageBucket ="map-dream-ed6e1.firebasestorage.app",
+window.messagingSenderId ="553244592475",
+window.appId = "1:553244592475:web:8d9818c7423da54c06327e",
+window.measurementId = "G-B3HJBJ36F8"
+
   const firebaseConfig = {
-    apiKey: "AIzaSyB4D_VgeVN61AV3RefuZjGGzConulsPTAE",
-    authDomain: "map-dream-ed6e1.firebaseapp.com",
-    databaseURL: "https://map-dream-ed6e1-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "map-dream-ed6e1",
-    storageBucket: "map-dream-ed6e1.firebasestorage.app",
-    messagingSenderId: "553244592475",
-    appId: "1:553244592475:web:8d9818c7423da54c06327e",
-    measurementId: "G-B3HJBJ36F8"
+    apiKey: window.apiKey,
+    authDomain: window.authDomain,
+    databaseURL: window.databaseURL,
+    projectId: window.projectId,
+    storageBucket: window.storageBucket,
+    messagingSenderId: window.messagingSenderId,
+    appId: window.appId,
+    measurementId: window.measurementId
   };
 
   const app = initializeApp(firebaseConfig);
