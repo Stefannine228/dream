@@ -15,28 +15,34 @@
         <div id="locationPrompt">
             <form>
                 <h3>Введіть назву міста:</h3>
-                <input class="Nunition" type="text" value="" id="cityInput" placeholder="Наприклад: Київ">
-                <button type="submit" class="Nunition" id="cityEnter">Знайти</button>
+                <input class="input-item" type="text" value="" id="cityInput" placeholder="Наприклад: Київ">
+                <button type="submit" class="input-item" id="cityEnter">Знайти</button>
             </form>
         </div>
         <div id="locationInMap">
             <form>
-                <input class="Nunition" type="text" value="" id="cityInputMap" placeholder="Локація">
-                <button type="submit" class="Nunition" id="cityEnterMap">Змінити</button>
+                <input class="input-item" type="text" value="" id="cityInputMap" placeholder="Локація">
+                <button type="submit" class="input-item" id="cityEnterMap">Змінити</button>
             </form>
         </div>
         <div id="map"></div>
 
-        <button id="login-btn">Вхід</button>
+        <button id="login-btn" class="btn">Вхід</button>
         <div id="infoBox">
-            <button class="Nunition-text" id="closeBtn">Відмінити ❌</button>
+            <div class="btn-close-container">
+                <button class="input-item-text btn-close" id="closeBtn">❌</button>
+            </div>
             <div class="addData">
-                <label class="Nunition-text">Назва локації:</label>
-                <input class="Nunition-text" type="text" id="placeName" placeholder="Введіть назву">
-                <label class="Nunition-text ">Опис:</label>
-                <input class="Nunition-text" type="text" id="placeDesc" placeholder="Опис локації">
-                <input class="Nunition-text addDataBtn" type="button" id="add" value="Створити"></input>
-                <button id="login">Вхід</button>
+                <div class="addData-container">
+                    <label class="input-item-text" for="name">Назва локації:</label>
+                    <input class="input-item-search" type="text" name="name" id="placeName" placeholder="Введіть назву">
+                </div>
+                <div class="addData-container">
+                    <label class="input-item-text" for="desc">Опис:</label>
+                    <textarea class="input-item-search" name="desc" type="text" id="placeDesc" placeholder="Опис локації"></textarea>
+                </div>
+                <input class="input-item-text addDataBtn btn" type="button" id="add" value="Створити"></input>
+                <button id="login" class="btn">Вхід</button>
             </div>
         </div>
     </div>
