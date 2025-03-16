@@ -25,10 +25,6 @@ body,
   height: 100%;
 }
 
-* {
-  box-sizing: border-box;
-}
-
 body {
   color: var(--foreground);
   background: var(--background);
@@ -52,4 +48,8 @@ a {
   html {
     color-scheme: dark;
   }
+}
+
+.marker-user .mapboxgl-popup-content {
+  background-color: #383434;
 }

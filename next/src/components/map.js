@@ -1,50 +1,62 @@
-import React, {useState, useRef, useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css"; 
+import "mapbox-gl/dist/mapbox-gl.css";
+import { database, ref, get, child } from "../helpers/firebase";
+
+mapboxgl.accessToken = "pk.eyJ1Ijoicm9tYW5rcmF2ZXRzIiwiYSI6ImNrZ2hzajNpejAweDYycW14NXZtYjJycWYifQ.0VN2Nw-1t2JfOHlcSlTYmg";
 
 function Map() {
-  const [map, setMap] = useState();
-  const [coordinates, setCoordinates] = useState();
+  const [map, setMap] = useState(null);
+  const [city, setCity] = useState("");
   const mapNode = useRef(null);
   const [markers, setMarkers] = useState([]);
-
-  
+  const markerRef = useRef(null);
 
   const getMap = async () => {
-    const node = mapNode.current;
-    const coordinates = await getCityCoordinates('Кременець');
-    setCoordinates(coordinates)
-    if (typeof window === "undefined" || node === null) return;
+    if (!mapNode.current) return;
+    
+    const coordinates = await getCityCoordinates("Кременець"); // Default location
+    if (!coordinates) return alert("❌ Error loading default location");
+
     const mapboxMap = new mapboxgl.Map({
-      container: node,
-            accessToken: "pk.eyJ1Ijoicm9tYW5rcmF2ZXRzIiwiYSI6ImNrZ2hzajNpejAweDYycW14NXZtYjJycWYifQ.0VN2Nw-1t2JfOHlcSlTYmg",
-            style: "mapbox://styles/mapbox/streets-v11",
+      container: mapNode.current,
+      style: "mapbox://styles/mapbox/streets-v11",
       center: coordinates,
       zoom: 10,
     });
-    const popup = new mapboxgl.Popup({ offset: 25 }).setText("You location");
-    const marker = new mapboxgl.Marker()
+
+    const marker = new mapboxgl.Marker({ color: "red" })
       .setLngLat(coordinates)
-      .setPopup(popup)
+      .setPopup(new mapboxgl.Popup().setText("Кременець"))
       .addTo(mapboxMap);
 
+    markerRef.current = marker;
     setMap(mapboxMap);
     fetchMarkers();
-  }
-
+  };
 
   const fetchMarkers = async () => {
     try {
-      const response = await fetch("https://your-api.com/markers"); // Replace with your API
-      const data = await response.json();
-      setMarkers(data);
+      const dbRef = ref(database);
+      const snapshot = await get(child(dbRef, "markers"));
+
+      if (snapshot.exists()) {
+        const markersData = snapshot.val();
+        const formattedMarkers = Object.keys(markersData).map((key) => ({
+          id: key,
+          ...markersData[key],
+        }));
+        setMarkers(formattedMarkers);
+      } else {
+        console.log("❌ No markers found!");
+      }
     } catch (error) {
       console.error("❌ Error fetching markers:", error);
     }
   };
 
   useEffect(() => {
-    getMap()
+    getMap();
   }, []);
 
   useEffect(() => {
@@ -58,43 +70,49 @@ function Map() {
         <button onclick="voteMarker('${marker._id}', 1)">+1</button>
       `;
 
-      new mapboxgl.Marker({ color: "red" })
+      new mapboxgl.Marker({ color: "blue" })
         .setLngLat([marker.coordinates.lng, marker.coordinates.lat])
-        .setPopup(new mapboxgl.Popup().setHTML(popupHTML))
+        .setPopup(new mapboxgl.Popup({ className: "marker-user" }).setHTML(popupHTML))
         .addTo(map);
     });
   }, [map, markers]);
 
-//   async function setMapLocation() {
-//     //event.preventDefault();
-//     const city = document.getElementById("cityInput").value;
-//     if (!city) {
-//         alert("Будь ласка, введіть місто!");
-//         return;
-//     }
+  const updateCity = async () => {
+    if (!city) return alert("🔴 Please enter a city!");
+    
+    const newCoordinates = await getCityCoordinates(city);
+    if (!newCoordinates) return alert("❌ City not found!");
 
-//     const coordinates = await getCityCoordinates(city);
-//     if (coordinates) {
-//         initializeMap(coordinates);
-//     } else {
-//         alert("Не вдалося знайти це місто. Введіть інше.");
-//     }
-//     return false;
-// }
+    map.flyTo({ center: newCoordinates, zoom: 12 });
 
+    if (markerRef.current) {
+      markerRef.current.setLngLat(newCoordinates)
+        .setPopup(new mapboxgl.Popup().setText(city))
+        .addTo(map);
+    }
+  };
 
   async function getCityCoordinates(city) {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${city}`;
     const response = await fetch(url);
     const data = await response.json();
-    if (data.length > 0) {
-        return [parseFloat(data[0].lon), parseFloat(data[0].lat)];
-    } else {
-        return null;
-    }
+    return data.length > 0 ? [parseFloat(data[0].lon), parseFloat(data[0].lat)] : null;
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom: "10px" }}>
+        <input
+          type="text"
+          placeholder="Enter city name"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+        />
+        <button onClick={updateCity}>Search</button>
+      </div>
+      <div ref={mapNode} style={{ width: "100%", height: "500px" }} />
+    </div>
+  );
 }
 
-    return <div ref={mapNode} style={{ width: "100%", height: "100%" }} />;
-}
-
-export default Map
+export default Map;
