@@ -27,18 +27,18 @@ window.measurementId = "G-B3HJBJ36F8"
 
   const loginBtn = document.getElementById('login')
   const addDataBtn = document.querySelector('.addDataBtn')
-
+  const loginGoogleContainer = document.querySelector('.loginGoogleContainer')
 
   document.addEventListener('DOMContentLoaded', function() { 
     onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("✅ User is authenticated:", user.uid);
         addDataBtn.style.display = "block";
-        document.getElementById('login').style.display = "none";
+        loginGoogleContainer.style.display = "none";
       } else {
         console.log("❌ No authenticated user found!");
         addDataBtn.style.display  = "none";
-        document.getElementById('login').style.display = "block";
+        loginGoogleContainer.style.display = "block";
       }
     });
   });
