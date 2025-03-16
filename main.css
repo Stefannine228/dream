@@ -17,6 +17,7 @@ body {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    margin: 10px 0;
 }
 
 .btn-close-container {
@@ -39,7 +40,6 @@ body {
 }
 
 .input-item { 
-    font-weight: bold;
     border-radius: 12px;
     border-width: 0;
     color: rgb(190, 205, 255);
@@ -77,20 +77,17 @@ body {
     animation-duration: 0.5;
     border-color: white;
     border-width: 1px;
-    border-style: solid;
-    box-shadow: 0px 0px 10px 2px rgb(24, 7, 87);
 }
 
 
 #cityInput{
-    margin-top: 100px;
     padding: 0;
     text-align: center;
     color: white;
 }
 #locationPrompt h3{
-    font-size: 35px;
-    margin-top: 50px;
+    font-size: 25px;
+    margin: 0 0 20px 0;
 }
 /* Модальне вікно */
 #locationPrompt {
@@ -98,7 +95,7 @@ body {
     top: 50%;
     left: 50%;
     width: 320px;
-    height: 420px;
+    height: 220px;
     transform: translate(-50%, -50%);
     background: white;
     padding: 20px;
@@ -106,13 +103,14 @@ body {
     box-shadow: 0px 0px 10px 1px white;
     text-align: center;
     font-family: Arial, sans-serif;
-    transition: 0.2s ease-out;
-    animation-duration: 0.2;
 }
-#locationPrompt:hover {
-    transition: 0.2s ease-out;
-    animation-duration: 0.2;
-    box-shadow: 0px 0px 30px 2px rgb(255, 255, 255);
+
+#locationPrompt form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 #infoBox {
     position: relative;

@@ -42,7 +42,10 @@
                     <textarea class="input-item-search" name="desc" type="text" id="placeDesc" placeholder="Опис локації"></textarea>
                 </div>
                 <input class="input-item-text addDataBtn btn" type="button" id="add" value="Створити"></input>
-                <button id="login" class="btn">Вхід</button>
+                <div class="loginGoogleContainer">
+                    <p>Щоб зробити запис на карті, потрібно увійти або зареєструватися</p>
+                    <button id="login" class="btn">Вхід</button>
+                </div>
             </div>
         </div>
     </div>
@@ -63,7 +66,8 @@
 
         const addDataBtn = document.querySelector('.addDataBtn')
         const loginButton = document.getElementById("login-btn");
-
+        const locationInMap = document.getElementById("locationInMap");
+        const infoBox = document.getElementById("infoBox");
 
         const login = () => {
             const provider = new firebase.auth.GoogleAuthProvider();
@@ -134,7 +138,7 @@
                 <p class="maker1">${markerInfo.description}</p>
                 <p>Підтримали: <span id="rating-${key}">${currentRating}</span></p>
                 <p>До підтримки звернення:</p>
-                <button onclick="voteMarker('${key}', 1)">+1</button>
+                <button class="btn" onclick="voteMarker('${key}', 1)">Голос</button>
                 `;
 
                         markData = new mapboxgl.Marker({ color: "red" })
@@ -226,7 +230,9 @@
 
         function initializeMap(centerCoords) {
             let k = 0
-            document.getElementById("locationPrompt").style.display = "none";
+            locationPrompt.style.display = "none";
+            locationInMap.style.display = "block";
+            loginButton.style.display = "block";
             document.getElementById("map").style.display = "block";
             ensureInfoPanel()
             map = new mapboxgl.Map({
@@ -249,14 +255,6 @@
             map.addControl(geoControl);
 
             map.addControl(new mapboxgl.FullscreenControl(), 'bottom-left');
-
-            // const geocoder = new MapboxGeocoder({
-            //     accessToken: mapboxgl.accessToken,
-            //     marker: { color: 'orange' },
-            //     mapboxgl: mapboxgl
-            // });
-
-            // map.addControl(geocoder, 'top-left'); 
 
             loadMarkers(map)
 
@@ -297,17 +295,17 @@
                         markData = new mapboxgl.Marker({ color: "green" })
                             .setLngLat(selectedCoords)
                             .addTo(map);
-                        document.getElementById("infoBox").style.display = "block";
+                            infoBox.style.display = "block";
 
                     } else {
                         closeInfoBox()
                         markData.remove();
                         markData = null;
-                        document.getElementById("infoBox").style.display = "none";
-                        document.getElementById("infoBox").style.display = "block";
+                        infoBox.style.display = "none";
+                        infoBox.style.display = "block";
                     }
                 } else {
-                    document.getElementById("infoBox").style.display = "none";
+                    infoBox.style.display = "none";
                 }
             });
         }
@@ -323,11 +321,15 @@
                         localStorage.setItem("userCoordinates", JSON.stringify(userCoords));
                     },
                     () => {
-                        document.getElementById("locationPrompt").style.display = "block";
+                        locationPrompt.style.display = "block";
+                        locationInMap.style.display = "none";
+                        loginButton.style.display = "none";
                     }
                 );
             } else {
-                document.getElementById("locationPrompt").style.display = "block";
+                locationPrompt.style.display = "block";
+                locationInMap.style.display = "none";
+                loginButton.style.display = "none";
             }
         }
 
@@ -396,7 +398,7 @@
         }
 
         function closeInfoBox() {
-            document.getElementById("infoBox").style.display = "none";
+            infoBox.style.display = "none";
             document.getElementById("placeName").value = "";
             document.getElementById("placeDesc").value = "";
 
