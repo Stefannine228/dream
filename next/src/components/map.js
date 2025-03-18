@@ -15,7 +15,7 @@ function Map() {
   const getMap = async () => {
     if (!mapNode.current) return;
     
-    const coordinates = await getCityCoordinates("Кременець"); // Default location
+    const coordinates = await getCityCoordinates("Кременець");
     if (!coordinates) return alert("❌ Error loading default location");
 
     const mapboxMap = new mapboxgl.Map({
@@ -25,13 +25,86 @@ function Map() {
       zoom: 10,
     });
 
+    const nav = new mapboxgl.NavigationControl();
+    mapboxMap.addControl(nav, "top-right");
+
+    const scale = new mapboxgl.ScaleControl({
+      maxWidth: 100,
+      unit: "metric",
+    });
+    mapboxMap.addControl(scale);
+
+    const fullscreenControl = new mapboxgl.FullscreenControl();
+    mapboxMap.addControl(fullscreenControl, "top-right");
+
+    const geolocate = new mapboxgl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+    });
+    mapboxMap.addControl(geolocate);
+
     const marker = new mapboxgl.Marker({ color: "red" })
       .setLngLat(coordinates)
-      .setPopup(new mapboxgl.Popup().setText("Кременець"))
+      .setPopup(new mapboxgl.Popup({ className: "marker-user" }).setText("Твоя локація"))
       .addTo(mapboxMap);
 
-    markerRef.current = marker;
+      mapboxMap.on("load", () => {
+        // Add first GeoJSON (Region Borders)
+        mapboxMap.addSource("region-borders", {
+          type: "geojson",
+          data: "/geoBoundaries.geojson",
+        });
+      
+        mapboxMap.addLayer({
+          id: "region-borders-layer",
+          type: "line",
+          source: "region-borders",
+          paint: {
+            "line-color": "#0000FF", // Blue borders
+            "line-width": 0.5,
+          },
+        });
+      
+        // Add second GeoJSON (Administrative Borders)
+        mapboxMap.addSource("region-borders-admin", {
+          type: "geojson",
+          data: "/geoBoundaries-admin.geojson",
+        });
+      
+        mapboxMap.addLayer({
+          id: "region-borders-layer-admin",
+          type: "line",
+          source: "region-borders-admin", // FIXED source name
+          paint: {
+            "line-color": "#FF0000", // Red borders
+            "line-width": 1,
+          },
+        });
+
+        mapboxMap.addSource("region-borders-title", {
+          type: "geojson",
+          data: "/geoBoundaries-hom-title.geojson",
+        });
+
+        mapboxMap.addLayer({
+          id: "region-borders-layer-title",
+          type: "symbol",
+          source: "region-borders-title",
+          layout: {
+            "text-field": ["get", "hromada"], // Use "hromada" property from GeoJSON
+            "text-size": 14,
+            "text-anchor": "center",
+          },
+          paint: {
+            "text-color": "#000000", // Black text
+            "text-halo-color": "#FFFFFF", // White outline
+            "text-halo-width": 2,
+          },
+        });
+      });
+
     setMap(mapboxMap);
+    markerRef.current = marker;
     fetchMarkers();
   };
 
@@ -56,7 +129,7 @@ function Map() {
   };
 
   useEffect(() => {
-    getMap();
+    getMap()
   }, []);
 
   useEffect(() => {
@@ -66,7 +139,7 @@ function Map() {
       const popupHTML = `
         <h3>${marker.name}</h3>
         <p>${marker.description}</p>
-        <p>Підтримали: <span id="rating-${marker._id}">${marker.rating || 0}</span></p>
+        <p>Підтрими звернення: <span id="rating-${marker._id}">${marker.rating || 0}</span></p>
         <button onclick="voteMarker('${marker._id}', 1)">+1</button>
       `;
 
@@ -87,7 +160,7 @@ function Map() {
 
     if (markerRef.current) {
       markerRef.current.setLngLat(newCoordinates)
-        .setPopup(new mapboxgl.Popup().setText(city))
+        .setPopup(new mapboxgl.Popup({ className: "marker-user" }).setText(city))
         .addTo(map);
     }
   };

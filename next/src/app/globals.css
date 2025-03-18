@@ -52,4 +52,15 @@ a {
 
 .marker-user .mapboxgl-popup-content {
   background-color: #383434;
+  padding: 10px;
+  max-width: 200px;
+}
+
+.marker-user .mapboxgl-popup-content h3 {
+  margin-top: 20px;
+}
+
+.mapboxgl-popup-close-button {
+  padding: 8px;
+  font-size: 20px;
 }
