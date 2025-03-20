@@ -56,11 +56,26 @@ a {
   max-width: 200px;
 }
 
-.marker-user .mapboxgl-popup-content h3 {
+.marker-user .mapboxgl-popup-content h3, .marker-user {
   margin-top: 20px;
 }
 
-.mapboxgl-popup-close-button {
+.mapboxgl-popup-close-button, .mapboxgl-popup-close-button span {
   padding: 8px;
   font-size: 20px;
+}
+
+.search {
+  position: absolute;
+  top: 20px;
+  z-index: 1;
+}
+
+.search input {
+  padding: 5px 10px;
+}
+
+.search button {
+  padding: 5px 10px;
+  margin-left: 10px;
 }
