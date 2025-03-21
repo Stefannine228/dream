@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { database, ref, get, child, auth } from "../../helpers/firebase";
+import { database, ref, get, child, auth, push, set } from "../../helpers/firebase";
 
 mapboxgl.accessToken =
   "pk.eyJ1Ijoicm9tYW5rcmF2ZXRzIiwiYSI6ImNrZ2hzajNpejAweDYycW14NXZtYjJycWYifQ.0VN2Nw-1t2JfOHlcSlTYmg";
@@ -58,19 +58,26 @@ function Map() {
       //)
       .addTo(mapboxMap);
 
+    setMarker(marker)
+
     mapboxMap.getCanvas().style.cursor = "pointer";
 
     mapboxMap.on("click", (event) => {
+      if (event.originalEvent.target.closest(".mapboxgl-marker")) {
+        console.log("Clicked on a marker, preventing modal!");
+        return;
+      }
+    
       const coords = event.lngLat;
       setSelectedCoords(coords);
-
+    
       if (marker) {
         marker.setLngLat(coords);
       }
-
+    
       setShowInfoBox(true);
     });
-
+    
     mapboxMap.on("load", () => {
       mapboxMap.addSource("region-borders", {
         type: "geojson",
@@ -97,7 +104,7 @@ function Map() {
         type: "line",
         source: "region-borders-admin",
         paint: {
-          "line-color": "#FF0000", // Red borders
+          "line-color": "#FF0000",
           "line-width": 1,
         },
       });
@@ -155,26 +162,28 @@ function Map() {
       },
       timestamp: Date.now(),
       rating: 0,
+      postApproved: false,
     };
 
     try {
-      const markersRef = ref(db, `users/${user.uid}/markers`);
-      const markersAllRef = ref(db, `markers`);
+      const markersRef = ref(database, `users/${user.uid}/markers`);
+      const markersAllRef = ref(database, `markers`);
       const newMarkerRef = push(markersRef);
       const newMarkersAllRef = push(markersAllRef);
 
       await set(newMarkerRef, markerData);
-      await set(newMarkersAllRef, markerData);
-
-      // Update the marker on the map
-      marker
-        .setLngLat(selectedCoords)
-        .setPopup(
-          new mapboxgl.Popup().setHTML(
-            `<h3>${placeName}</h3><p>${placeDesc}</p>`
-          )
-        )
-        .addTo(map);
+      await set(newMarkersAllRef, markerData).then(() => {
+        getMap();
+      })
+      // // Update the marker on the map
+      // marker
+      //   .setLngLat(selectedCoords)
+      //   .setPopup(
+      //     new mapboxgl.Popup().setHTML(
+      //       `<h3>${placeName}</h3><p>${placeDesc}</p>`
+      //     )
+      //   )
+      //   .addTo(map);
 
       alert("✅ Маркер успішно збережено!");
       setShowInfoBox(false);
@@ -184,6 +193,16 @@ function Map() {
       console.error("Помилка збереження:", error);
       alert("❌ Не вдалося зберегти маркер!");
     }
+  };
+
+  const closeModal = () => {
+    setShowInfoBox(false);
+  
+   // if (marker) {
+      //marker.remove();  // Remove the marker from the map
+      //marker = null;  
+      //getMap(); 
+    //}
   };
 
   const fetchMarkers = async () => {
@@ -217,7 +236,7 @@ function Map() {
       const popupHTML = `
         <h3>${marker.name}</h3>
         <p>${marker.description}</p>
-        <p>Підтрими звернення: <span id="rating-${marker._id}">${
+        <p>Підтримати звернення: <span id="rating-${marker._id}">${
         marker.rating || 0
       }</span></p>
         <button onclick="voteMarker('${marker._id}', 1)">+1</button>
@@ -296,7 +315,7 @@ function Map() {
             onChange={(e) => setPlaceDesc(e.target.value)}
           />
           <button onClick={handleAddLocation}>Створити</button>
-          <button onClick={() => setShowInfoBox(false)}>❌</button>
+          <button onClick={() => closeModal()}>❌</button>
         </div>
       )}
     </div>
